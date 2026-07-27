@@ -1,0 +1,11 @@
+services:
+  payerr:
+    build: .
+    container_name: payerr
+    restart: unless-stopped
+    ports:
+      - "3690:3000"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - TZ=America/New_York
