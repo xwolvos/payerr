@@ -18,6 +18,10 @@ payment request links so you're not chasing people down manually.
   (SMTP).
 - **Payment tracking** — mark invoices paid/unpaid and keep a history of
   billing periods.
+- **Automation** — optionally auto-generate the monthly billing period,
+  auto-send reminders on a recurring interval until paid, and auto-sync
+  your user roster, all on a schedule that runs inside the container
+  itself (no external cron or scripts needed).
 
 Payerr never touches real money — it doesn't process payments or store
 financial credentials. It generates the request links; your existing payment
@@ -25,7 +29,28 @@ apps handle the transaction.
 
 ## Running it
 
-### Docker Compose (recommended)
+### Prebuilt image (recommended)
+
+A CI workflow publishes a built image to GHCR on every push to `master` —
+no local build step needed:
+
+```bash
+docker run -d \
+  --name payerr \
+  -p 3690:3000 \
+  -v ./data:/app/data \
+  --restart unless-stopped \
+  ghcr.io/xwolvos/payerr:latest
+```
+
+Or on Unraid: **Docker → Add Container**, set Repository to
+`ghcr.io/xwolvos/payerr:latest`, map container port `3000` to a host port,
+and map container path `/app/data` to an appdata folder.
+
+The app will be available at `http://<host>:3690`. On first visit you'll be
+walked through creating an admin account.
+
+### Docker Compose (build from source)
 
 ```bash
 git clone <this-repo> payerr
@@ -33,10 +58,7 @@ cd payerr
 docker compose up -d
 ```
 
-The app will be available at `http://<host>:3690`. On first visit you'll be
-walked through creating an admin account.
-
-### Docker run
+### Docker run (build from source)
 
 ```bash
 docker build -t payerr .
@@ -55,19 +77,29 @@ build tooling required).
 
 ```bash
 npm install
-npm run dev
+npm run dev   # dev server
+npm test      # runs the cost-splitting math tests
 ```
 
 ## Configuration
 
-Everything is configured through the UI after first login:
+Everything is configured through the UI after first login, under Settings:
 
-- **Settings → Your payment handles** — your Venmo/PayPal/Cash App usernames.
-  These receive the money; they are not per-user.
-- **Settings → Integrations** — Plex token, Overseerr/Jellyseerr URL + API
-  key, Discord webhook, and SMTP details for reminders.
-- **Users** — add people manually or sync from Plex/Overseerr, and set each
-  person's share type (equal / weighted / fixed).
+- **General** — sender name (shown in reminders/payment notes), currency,
+  Discord webhook URL.
+- **Payments** — your Venmo/PayPal/Cash App usernames. These receive the
+  money; they are not per-user.
+- **Integrations** — Plex server URL + token, Jellyfin URL + API key,
+  Overseerr/Jellyseerr URL + API key.
+- **SMTP** — email server details for reminders.
+- **Automation** — optionally auto-generate the monthly period, auto-send
+  reminders on an interval, and auto-sync users, all on an internal
+  schedule (no external cron needed).
+
+Elsewhere:
+
+- **Users** — add people manually or sync from Plex/Jellyfin/Overseerr, and
+  set each person's share type (equal / weighted / fixed).
 - **Costs** — add your recurring expenses.
 - **Dashboard** — generate a billing period, send reminders, and mark
   invoices paid.
