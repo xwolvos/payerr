@@ -50,7 +50,7 @@ export function migrate() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       email TEXT,
-      plex_username TEXT,
+      external_username TEXT,
       source TEXT NOT NULL DEFAULT 'manual',
       share_type TEXT NOT NULL DEFAULT 'equal',
       share_value REAL NOT NULL DEFAULT 1,
@@ -85,6 +85,13 @@ export function migrate() {
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
   `);
+
+  const userColumns = db.prepare("PRAGMA table_info(users)").all() as Array<{ name: string }>;
+  const hasOldColumn = userColumns.some((c) => c.name === "plex_username");
+  const hasNewColumn = userColumns.some((c) => c.name === "external_username");
+  if (hasOldColumn && !hasNewColumn) {
+    db.exec("ALTER TABLE users RENAME COLUMN plex_username TO external_username;");
+  }
 }
 
 migrate();

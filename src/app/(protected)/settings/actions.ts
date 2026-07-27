@@ -10,6 +10,8 @@ function str(formData: FormData, key: string): string {
 
 export async function saveIntegrations(formData: FormData) {
   setSetting("plex_token", str(formData, "plex_token"));
+  setSetting("jellyfin_url", str(formData, "jellyfin_url"));
+  setSetting("jellyfin_api_key", str(formData, "jellyfin_api_key"));
   setSetting("overseerr_url", str(formData, "overseerr_url"));
   setSetting("overseerr_api_key", str(formData, "overseerr_api_key"));
   setSetting("discord_webhook_url", str(formData, "discord_webhook_url"));

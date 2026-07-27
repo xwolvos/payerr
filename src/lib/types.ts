@@ -11,7 +11,7 @@ export interface User {
   id: number;
   name: string;
   email: string | null;
-  plex_username: string | null;
+  external_username: string | null;
   source: string;
   share_type: "equal" | "weighted" | "fixed";
   share_value: number;

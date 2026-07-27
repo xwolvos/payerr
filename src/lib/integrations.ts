@@ -3,7 +3,7 @@ import nodemailer from "nodemailer";
 export interface ImportedUser {
   name: string;
   email: string | null;
-  plexUsername: string | null;
+  externalUsername: string | null;
 }
 
 /**
@@ -26,7 +26,29 @@ export async function fetchPlexFriends(token: string): Promise<ImportedUser[]> {
   return data.map((f) => ({
     name: f.friendlyName || f.username || f.title || f.email || "Unknown",
     email: f.email ?? null,
-    plexUsername: f.username ?? f.title ?? null,
+    externalUsername: f.username ?? f.title ?? null,
+  }));
+}
+
+/**
+ * Jellyfin has no per-library sharing like Plex — this lists every account
+ * on the server via the admin Users endpoint, which is the closest
+ * equivalent to "who has access."
+ */
+export async function fetchJellyfinUsers(
+  baseUrl: string,
+  apiKey: string
+): Promise<ImportedUser[]> {
+  const url = `${baseUrl.replace(/\/$/, "")}/Users`;
+  const res = await fetch(url, {
+    headers: { "X-Emby-Token": apiKey, Accept: "application/json" },
+  });
+  if (!res.ok) throw new Error(`Jellyfin API error: ${res.status} ${res.statusText}`);
+  const data = (await res.json()) as Array<{ Name?: string }>;
+  return data.map((u) => ({
+    name: u.Name || "Unknown",
+    email: null,
+    externalUsername: u.Name ?? null,
   }));
 }
 
@@ -45,7 +67,7 @@ export async function fetchOverseerrUsers(
   return data.results.map((u) => ({
     name: u.displayName || u.plexUsername || u.email || "Unknown",
     email: u.email ?? null,
-    plexUsername: u.plexUsername ?? null,
+    externalUsername: u.plexUsername ?? null,
   }));
 }
 

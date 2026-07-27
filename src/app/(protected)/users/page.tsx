@@ -8,6 +8,7 @@ import {
   deleteUser,
   syncPlexUsers,
   syncOverseerrUsers,
+  syncJellyfinUsers,
 } from "./actions";
 
 const inputClass =
@@ -40,6 +41,14 @@ export default async function UsersPage({
               className="rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-1.5 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
             >
               Sync from Plex
+            </button>
+          </form>
+          <form action={syncJellyfinUsers}>
+            <button
+              type="submit"
+              className="rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-1.5 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            >
+              Sync from Jellyfin
             </button>
           </form>
           <form action={syncOverseerrUsers}>
@@ -87,7 +96,7 @@ export default async function UsersPage({
                     </span>
                   </p>
                   <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                    {u.email || u.plex_username || "no contact info"} &middot; share:{" "}
+                    {u.email || u.external_username || "no contact info"} &middot; share:{" "}
                     {u.share_type === "fixed"
                       ? `$${u.share_value.toFixed(2)} flat`
                       : u.share_type === "weighted"
@@ -149,10 +158,10 @@ function UserForm({ action, user }: { action: (formData: FormData) => void; user
           <input name="email" type="email" defaultValue={user?.email ?? ""} className={inputClass} />
         </div>
         <div>
-          <label className={labelClass}>Plex username</label>
+          <label className={labelClass}>Plex/Jellyfin username</label>
           <input
-            name="plex_username"
-            defaultValue={user?.plex_username ?? ""}
+            name="external_username"
+            defaultValue={user?.external_username ?? ""}
             className={inputClass}
           />
         </div>

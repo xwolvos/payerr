@@ -3,12 +3,17 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db, getSetting, queryAll } from "@/lib/db";
-import { fetchPlexFriends, fetchOverseerrUsers, ImportedUser } from "@/lib/integrations";
+import {
+  fetchPlexFriends,
+  fetchOverseerrUsers,
+  fetchJellyfinUsers,
+  ImportedUser,
+} from "@/lib/integrations";
 
 export async function addUser(formData: FormData) {
   const name = String(formData.get("name") || "").trim();
   const email = String(formData.get("email") || "").trim() || null;
-  const plexUsername = String(formData.get("plex_username") || "").trim() || null;
+  const externalUsername = String(formData.get("external_username") || "").trim() || null;
   const shareType = String(formData.get("share_type") || "equal");
   const shareValue = Number(formData.get("share_value") || 1);
 
@@ -17,9 +22,9 @@ export async function addUser(formData: FormData) {
   }
 
   db.prepare(
-    `INSERT INTO users (name, email, plex_username, source, share_type, share_value)
+    `INSERT INTO users (name, email, external_username, source, share_type, share_value)
      VALUES (?, ?, ?, 'manual', ?, ?)`
-  ).run(name, email, plexUsername, shareType, shareValue);
+  ).run(name, email, externalUsername, shareType, shareValue);
 
   revalidatePath("/users");
 }
@@ -28,7 +33,7 @@ export async function updateUser(formData: FormData) {
   const id = Number(formData.get("id"));
   const name = String(formData.get("name") || "").trim();
   const email = String(formData.get("email") || "").trim() || null;
-  const plexUsername = String(formData.get("plex_username") || "").trim() || null;
+  const externalUsername = String(formData.get("external_username") || "").trim() || null;
   const shareType = String(formData.get("share_type") || "equal");
   const shareValue = Number(formData.get("share_value") || 1);
 
@@ -37,9 +42,9 @@ export async function updateUser(formData: FormData) {
   }
 
   db.prepare(
-    `UPDATE users SET name = ?, email = ?, plex_username = ?, share_type = ?, share_value = ?
+    `UPDATE users SET name = ?, email = ?, external_username = ?, share_type = ?, share_value = ?
      WHERE id = ?`
-  ).run(name, email, plexUsername, shareType, shareValue, id);
+  ).run(name, email, externalUsername, shareType, shareValue, id);
 
   revalidatePath("/users");
   redirect("/users");
@@ -61,21 +66,21 @@ function upsertImported(imported: ImportedUser[], source: string) {
   const existing = queryAll<{
     id: number;
     email: string | null;
-    plex_username: string | null;
-  }>("SELECT id, email, plex_username FROM users");
+    external_username: string | null;
+  }>("SELECT id, email, external_username FROM users");
 
   let added = 0;
   for (const u of imported) {
     const match = existing.find(
       (e) =>
         (u.email && e.email && e.email.toLowerCase() === u.email.toLowerCase()) ||
-        (u.plexUsername && e.plex_username && e.plex_username === u.plexUsername)
+        (u.externalUsername && e.external_username && e.external_username === u.externalUsername)
     );
     if (match) continue;
     db.prepare(
-      `INSERT INTO users (name, email, plex_username, source, share_type, share_value)
+      `INSERT INTO users (name, email, external_username, source, share_type, share_value)
        VALUES (?, ?, ?, ?, 'equal', 1)`
-    ).run(u.name, u.email, u.plexUsername, source);
+    ).run(u.name, u.email, u.externalUsername, source);
     added++;
   }
   return added;
@@ -119,6 +124,30 @@ export async function syncOverseerrUsers() {
   } catch (err) {
     redirectTarget =
       "/users?error=" + encodeURIComponent(`Overseerr sync failed: ${(err as Error).message}`);
+  }
+  redirect(redirectTarget);
+}
+
+export async function syncJellyfinUsers() {
+  const url = getSetting("jellyfin_url");
+  const apiKey = getSetting("jellyfin_api_key");
+  if (!url || !apiKey) {
+    redirect(
+      "/users?error=" +
+        encodeURIComponent("Configure your Jellyfin URL and API key in Settings first")
+    );
+  }
+
+  let redirectTarget: string;
+  try {
+    const users = await fetchJellyfinUsers(url!, apiKey!);
+    const added = upsertImported(users, "jellyfin");
+    revalidatePath("/users");
+    redirectTarget =
+      "/users?synced=" + encodeURIComponent(`Imported ${added} new user(s) from Jellyfin`);
+  } catch (err) {
+    redirectTarget =
+      "/users?error=" + encodeURIComponent(`Jellyfin sync failed: ${(err as Error).message}`);
   }
   redirect(redirectTarget);
 }

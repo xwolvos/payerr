@@ -13,6 +13,8 @@ export default async function SettingsPage({
   const { saved } = await searchParams;
   const s = getSettings([
     "plex_token",
+    "jellyfin_url",
+    "jellyfin_api_key",
     "overseerr_url",
     "overseerr_api_key",
     "discord_webhook_url",
@@ -85,6 +87,32 @@ export default async function SettingsPage({
               defaultValue={s.plex_token ?? ""}
               className={inputClass}
             />
+          </div>
+
+          <div>
+            <h3 className="mb-2 text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+              Jellyfin
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className={labelClass}>URL</label>
+                <input
+                  name="jellyfin_url"
+                  placeholder="http://192.168.1.10:8096"
+                  defaultValue={s.jellyfin_url ?? ""}
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>API key</label>
+                <input
+                  name="jellyfin_api_key"
+                  type="password"
+                  defaultValue={s.jellyfin_api_key ?? ""}
+                  className={inputClass}
+                />
+              </div>
+            </div>
           </div>
 
           <div>
