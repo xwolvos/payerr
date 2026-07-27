@@ -125,9 +125,14 @@ export default async function SettingsPage({
             </div>
 
             <div>
-              <h3 className="mb-2 text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+              <h3 className="mb-1 text-sm font-semibold text-zinc-700 dark:text-zinc-300">
                 Discord reminders
               </h3>
+              <p className="mb-2 text-xs text-zinc-500 dark:text-zinc-400">
+                When you click &quot;Send reminders&quot; on the Dashboard (or automation does
+                it for you), Payerr posts a message to this webhook for every unpaid invoice:
+                who owes what, and their payment links. Leave blank to skip Discord entirely.
+              </p>
               <label className={labelClass}>Webhook URL</label>
               <input
                 name="discord_webhook_url"
@@ -135,6 +140,10 @@ export default async function SettingsPage({
                 defaultValue={s.discord_webhook_url ?? ""}
                 className={inputClass}
               />
+              <p className="mt-1 text-xs text-zinc-400">
+                Discord server &rarr; Server Settings &rarr; Integrations &rarr; Webhooks &rarr;
+                New Webhook &rarr; Copy URL.
+              </p>
             </div>
 
             <button
@@ -183,12 +192,22 @@ export default async function SettingsPage({
 
       {activeTab === "integrations" && (
         <section className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-sm">
-          <h2 className="mb-3 font-semibold text-zinc-900 dark:text-zinc-50">Integrations</h2>
+          <h2 className="mb-1 font-semibold text-zinc-900 dark:text-zinc-50">Integrations</h2>
+          <p className="mb-4 text-sm text-zinc-500 dark:text-zinc-400">
+            Configuring any of these enables its &quot;Sync from&quot; button on the Users page
+            (and, if turned on, the Automation tab&apos;s scheduled sync) &mdash; pulling in
+            names/emails so you don&apos;t have to type them in by hand. None of this grants
+            Payerr any control over your media server; it only reads the user list.
+          </p>
           <form action={saveIntegrations} className="space-y-5">
             <div>
-              <h3 className="mb-2 text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+              <h3 className="mb-1 text-sm font-semibold text-zinc-700 dark:text-zinc-300">
                 Plex
               </h3>
+              <p className="mb-2 text-xs text-zinc-500 dark:text-zinc-400">
+                Queries your Plex server&apos;s own account list &mdash; the people who
+                actually have access to it, not just your wider plex.tv friends list.
+              </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className={labelClass}>Server URL</label>
@@ -212,9 +231,15 @@ export default async function SettingsPage({
             </div>
 
             <div>
-              <h3 className="mb-2 text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+              <h3 className="mb-1 text-sm font-semibold text-zinc-700 dark:text-zinc-300">
                 Jellyfin
               </h3>
+              <p className="mb-2 text-xs text-zinc-500 dark:text-zinc-400">
+                Lists every account on the server (Jellyfin has no per-library sharing like
+                Plex, so the full account list is the closest thing to &quot;who has
+                access&quot;). Needs an admin API key, from Jellyfin&apos;s Dashboard &rarr;
+                API Keys.
+              </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className={labelClass}>URL</label>
@@ -238,9 +263,13 @@ export default async function SettingsPage({
             </div>
 
             <div>
-              <h3 className="mb-2 text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+              <h3 className="mb-1 text-sm font-semibold text-zinc-700 dark:text-zinc-300">
                 Overseerr / Jellyseerr
               </h3>
+              <p className="mb-2 text-xs text-zinc-500 dark:text-zinc-400">
+                Pulls the user list Overseerr/Jellyseerr already has. The API key is under its
+                Settings &rarr; General page (click the eye icon to reveal it).
+              </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className={labelClass}>URL</label>
@@ -275,9 +304,14 @@ export default async function SettingsPage({
 
       {activeTab === "smtp" && (
         <section className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-sm">
-          <h2 className="mb-3 font-semibold text-zinc-900 dark:text-zinc-50">
+          <h2 className="mb-1 font-semibold text-zinc-900 dark:text-zinc-50">
             Email reminders (SMTP)
           </h2>
+          <p className="mb-3 text-sm text-zinc-500 dark:text-zinc-400">
+            An alternative (or addition) to Discord: when reminders go out, anyone with an
+            email address on their user record gets one directly, listing what they owe and
+            their payment links. Leave the host blank to skip email reminders entirely.
+          </p>
           <form action={saveSmtp} className="space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
