@@ -11,6 +11,7 @@ import {
   PaymentHandles,
 } from "@/lib/integrations";
 import { CostItem, Invoice, User } from "@/lib/types";
+import { formatMoney } from "@/lib/format";
 
 export async function generatePeriod(formData: FormData) {
   const label =
@@ -93,6 +94,8 @@ export async function sendReminders(formData: FormData) {
   );
 
   const settings = getSettings([
+    "server_name",
+    "currency_symbol",
     "venmo",
     "paypal",
     "cashapp",
@@ -108,18 +111,21 @@ export async function sendReminders(formData: FormData) {
     paypal: settings.paypal,
     cashapp: settings.cashapp,
   };
+  const senderName = settings.server_name || "Payerr";
+  const currency = settings.currency_symbol || "$";
 
   let discordSent = 0;
   let emailSent = 0;
   let emailFailed = 0;
 
   for (const inv of unpaid) {
-    const note = `Payerr - ${inv.user_name} - ${period!.label}`;
+    const amount = formatMoney(inv.amount_due, currency);
+    const note = `${senderName} - ${inv.user_name} - ${period!.label}`;
     const links = buildPaymentLinks(handles, inv.amount_due, note);
     const linksText = links.map((l) => `${l.label}: ${l.url}`).join("\n");
-    const message = `💸 **${inv.user_name}** owes **$${inv.amount_due.toFixed(2)}** for ${
-      period!.label
-    }\n${linksText || "(no payment handles configured)"}`;
+    const message = `💸 **${inv.user_name}** owes **${amount}** for ${period!.label} (${senderName})\n${
+      linksText || "(no payment handles configured)"
+    }`;
 
     if (settings.discord_webhook_url) {
       try {
@@ -141,10 +147,8 @@ export async function sendReminders(formData: FormData) {
             from: settings.smtp_from || settings.smtp_user || "payerr@localhost",
           },
           inv.user_email,
-          `Payment due: $${inv.amount_due.toFixed(2)} for ${period!.label}`,
-          `Hi ${inv.user_name},\n\nYou owe $${inv.amount_due.toFixed(2)} for ${
-            period!.label
-          }.\n\n${linksText}\n\nThanks!`
+          `Payment due: ${amount} for ${period!.label} (${senderName})`,
+          `Hi ${inv.user_name},\n\nYou owe ${amount} for ${period!.label} (${senderName}).\n\n${linksText}\n\nThanks!`
         );
         emailSent++;
       } catch {

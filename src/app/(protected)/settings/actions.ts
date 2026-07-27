@@ -9,9 +9,14 @@ function str(formData: FormData, key: string): string {
 }
 
 export async function saveGeneral(formData: FormData) {
+  setSetting("server_name", str(formData, "server_name") || "Payerr");
+  setSetting("currency_symbol", str(formData, "currency_symbol") || "$");
   setSetting("discord_webhook_url", str(formData, "discord_webhook_url"));
 
   revalidatePath("/settings");
+  revalidatePath("/dashboard");
+  revalidatePath("/costs");
+  revalidatePath("/users");
   redirect("/settings?tab=general&saved=1");
 }
 

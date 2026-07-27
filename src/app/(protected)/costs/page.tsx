@@ -1,6 +1,7 @@
-import { queryAll } from "@/lib/db";
+import { queryAll, getSetting } from "@/lib/db";
 import { CostItem } from "@/lib/types";
 import { monthlyEquivalent } from "@/lib/split";
+import { formatMoney } from "@/lib/format";
 import { addCostItem, toggleCostItem, deleteCostItem } from "./actions";
 
 export default async function CostsPage({
@@ -12,6 +13,7 @@ export default async function CostsPage({
   const items = queryAll<CostItem>(
     "SELECT * FROM cost_items ORDER BY active DESC, created_at DESC"
   );
+  const currency = getSetting("currency_symbol") || "$";
 
   const monthlyTotal = items
     .filter((i) => i.active)
@@ -36,7 +38,7 @@ export default async function CostsPage({
         <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 px-4 py-3">
           <h2 className="font-semibold text-zinc-900 dark:text-zinc-50">Active items</h2>
           <span className="text-sm font-medium text-emerald-600">
-            ${monthlyTotal.toFixed(2)} / mo total
+            {formatMoney(monthlyTotal, currency)} / mo total
           </span>
         </div>
         <ul className="divide-y divide-zinc-200 dark:divide-zinc-800">
@@ -48,9 +50,9 @@ export default async function CostsPage({
               <div className={item.active ? "" : "opacity-40"}>
                 <p className="font-medium text-zinc-900 dark:text-zinc-50">{item.name}</p>
                 <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                  ${item.amount.toFixed(2)} / {item.interval === "yearly" ? "yr" : "mo"}
+                  {formatMoney(item.amount, currency)} / {item.interval === "yearly" ? "yr" : "mo"}
                   {item.interval === "yearly" && (
-                    <> &middot; ${monthlyEquivalent(item).toFixed(2)}/mo equivalent</>
+                    <> &middot; {formatMoney(monthlyEquivalent(item), currency)}/mo equivalent</>
                   )}
                 </p>
               </div>

@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { queryAll } from "@/lib/db";
+import { queryAll, getSetting } from "@/lib/db";
 import { User } from "@/lib/types";
+import { formatMoney } from "@/lib/format";
 import {
   addUser,
   updateUser,
@@ -22,6 +23,7 @@ export default async function UsersPage({
 }) {
   const { error, synced, edit } = await searchParams;
   const users = queryAll<User>("SELECT * FROM users ORDER BY active DESC, name ASC");
+  const currency = getSetting("currency_symbol") || "$";
 
   const editingUser = edit ? users.find((u) => u.id === Number(edit)) : null;
 
@@ -98,7 +100,7 @@ export default async function UsersPage({
                   <p className="text-sm text-zinc-500 dark:text-zinc-400">
                     {u.email || u.external_username || "no contact info"} &middot; share:{" "}
                     {u.share_type === "fixed"
-                      ? `$${u.share_value.toFixed(2)} flat`
+                      ? `${formatMoney(u.share_value, currency)} flat`
                       : u.share_type === "weighted"
                         ? `${u.share_value}x weight`
                         : "equal"}

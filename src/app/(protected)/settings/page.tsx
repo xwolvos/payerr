@@ -24,6 +24,8 @@ export default async function SettingsPage({
   const activeTab: TabKey = TABS.some((t) => t.key === tab) ? (tab as TabKey) : "general";
 
   const s = getSettings([
+    "server_name",
+    "currency_symbol",
     "plex_url",
     "plex_token",
     "jellyfin_url",
@@ -74,11 +76,39 @@ export default async function SettingsPage({
 
       {activeTab === "general" && (
         <section className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-sm">
-          <h2 className="mb-3 font-semibold text-zinc-900 dark:text-zinc-50">
-            Discord reminders
-          </h2>
-          <form action={saveGeneral} className="space-y-3">
+          <h2 className="mb-3 font-semibold text-zinc-900 dark:text-zinc-50">General</h2>
+          <form action={saveGeneral} className="space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className={labelClass}>
+                  Sender name{" "}
+                  <span className="normal-case font-normal text-zinc-400">
+                    (shown in reminders and payment requests)
+                  </span>
+                </label>
+                <input
+                  name="server_name"
+                  placeholder="Dan's Plex Server"
+                  defaultValue={s.server_name ?? ""}
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Currency symbol</label>
+                <input
+                  name="currency_symbol"
+                  placeholder="$"
+                  maxLength={3}
+                  defaultValue={s.currency_symbol ?? "$"}
+                  className={inputClass}
+                />
+              </div>
+            </div>
+
             <div>
+              <h3 className="mb-2 text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+                Discord reminders
+              </h3>
               <label className={labelClass}>Webhook URL</label>
               <input
                 name="discord_webhook_url"
@@ -87,6 +117,7 @@ export default async function SettingsPage({
                 className={inputClass}
               />
             </div>
+
             <button
               type="submit"
               className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500 transition-colors"

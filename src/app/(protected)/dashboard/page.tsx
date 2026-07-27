@@ -1,6 +1,7 @@
 import { queryAll, queryOne, getSettings } from "@/lib/db";
 import { BillingPeriod, Invoice } from "@/lib/types";
 import { buildPaymentLinks, PaymentHandles } from "@/lib/integrations";
+import { formatMoney } from "@/lib/format";
 import {
   generatePeriod,
   deletePeriod,
@@ -28,13 +29,15 @@ export default async function DashboardPage({
   const activeUserCount =
     queryOne<{ c: number }>("SELECT COUNT(*) as c FROM users WHERE active = 1")?.c ?? 0;
 
-  const settings = getSettings(["venmo", "paypal", "cashapp"]);
+  const settings = getSettings(["server_name", "currency_symbol", "venmo", "paypal", "cashapp"]);
   const handles: PaymentHandles = {
     venmo: settings.venmo,
     paypal: settings.paypal,
     cashapp: settings.cashapp,
   };
   const hasHandles = Boolean(handles.venmo || handles.paypal || handles.cashapp);
+  const senderName = settings.server_name || "Payerr";
+  const currency = settings.currency_symbol || "$";
 
   return (
     <div className="space-y-8">
@@ -107,7 +110,7 @@ export default async function DashboardPage({
               <div>
                 <h2 className="font-semibold text-zinc-900 dark:text-zinc-50">{period.label}</h2>
                 <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                  ${period.total_cost.toFixed(2)} total &middot;{" "}
+                  {formatMoney(period.total_cost, currency)} total &middot;{" "}
                   {unpaidCount === 0 ? "all paid" : `${unpaidCount} unpaid`}
                 </p>
               </div>
@@ -137,7 +140,11 @@ export default async function DashboardPage({
             <ul className="divide-y divide-zinc-200 dark:divide-zinc-800">
               {invoices.map((inv) => {
                 const links = hasHandles
-                  ? buildPaymentLinks(handles, inv.amount_due, `Payerr - ${inv.user_name} - ${period.label}`)
+                  ? buildPaymentLinks(
+                      handles,
+                      inv.amount_due,
+                      `${senderName} - ${inv.user_name} - ${period.label}`
+                    )
                   : [];
                 return (
                   <li key={inv.id} className="flex items-center justify-between px-4 py-3">
@@ -155,7 +162,7 @@ export default async function DashboardPage({
                         </span>
                       </p>
                       <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                        ${inv.amount_due.toFixed(2)}
+                        {formatMoney(inv.amount_due, currency)}
                         {inv.status === "paid" && inv.paid_at && (
                           <> &middot; paid {new Date(inv.paid_at).toLocaleDateString()}</>
                         )}
