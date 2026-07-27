@@ -28,10 +28,18 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - **Build-time SQLite lock contention.** `next build` spins up several
   worker processes that each import `db.ts` to statically analyze routes.
   If `db.ts` opened a real connection to the on-disk file at import time,
-  those workers race on the WAL lock and the build fails with
+  those workers race on the DB lock and the build fails with
   "database is locked." `src/lib/db.ts` detects `NEXT_PHASE ===
   "phase-production-build"` and uses an in-memory DB during build instead.
   Keep that guard if you touch `db.ts`.
+- **No WAL journal mode.** `db.ts` explicitly sets `journal_mode = DELETE`,
+  not the more common `WAL`. WAL depends on a shared-memory mmap (the
+  `-shm` file) that FUSE-based filesystems don't reliably support —
+  concretely, Unraid's `/mnt/user` union mount silently lost writes across
+  container restarts in testing (admin account created, container
+  restarted once, account was gone). This is a single-process app with low
+  write volume, so DELETE's weaker concurrent-writer story doesn't matter.
+  Don't switch back to WAL for a performance micro-optimization.
 - **`npm ci` vs `npm install` on Linux.** Both the Dockerfile and
   `ci.yml` use `npm install`, not `npm ci`. A `package-lock.json`
   generated on Windows/macOS doesn't carry the Linux optional platform

@@ -21,7 +21,12 @@ declare global {
 
 function createConnection(): DatabaseSync {
   const conn = new DatabaseSync(DB_PATH);
-  conn.exec("PRAGMA journal_mode = WAL;");
+  // Deliberately NOT WAL: WAL relies on shared-memory mmap (the -shm file)
+  // that FUSE-based filesystems (e.g. Unraid's /mnt/user union mount) don't
+  // reliably support, which silently lost writes across container restarts
+  // in testing. DELETE (the default) is slower under concurrent writers but
+  // this is a single-process app with low write volume, so that's fine.
+  conn.exec("PRAGMA journal_mode = DELETE;");
   conn.exec("PRAGMA busy_timeout = 5000;");
   conn.exec("PRAGMA foreign_keys = ON;");
   return conn;
