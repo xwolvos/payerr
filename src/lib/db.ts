@@ -16,7 +16,6 @@ if (!isBuildPhase && !fs.existsSync(DATA_DIR)) {
 const DB_PATH = isBuildPhase ? ":memory:" : path.join(DATA_DIR, "payerr.sqlite");
 
 declare global {
-  // eslint-disable-next-line no-var
   var __payerrDb: DatabaseSync | undefined;
 }
 
