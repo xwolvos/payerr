@@ -51,3 +51,15 @@ export async function saveSmtp(formData: FormData) {
   revalidatePath("/settings");
   redirect("/settings?tab=smtp&saved=1");
 }
+
+export async function saveAutomation(formData: FormData) {
+  setSetting("auto_generate_period_enabled", formData.get("auto_generate_period_enabled") ? "1" : "");
+  setSetting("auto_generate_day", str(formData, "auto_generate_day") || "1");
+  setSetting("auto_reminder_enabled", formData.get("auto_reminder_enabled") ? "1" : "");
+  setSetting("auto_reminder_interval_days", str(formData, "auto_reminder_interval_days") || "3");
+  setSetting("auto_sync_enabled", formData.get("auto_sync_enabled") ? "1" : "");
+  setSetting("auto_sync_interval_hours", str(formData, "auto_sync_interval_hours") || "24");
+
+  revalidatePath("/settings");
+  redirect("/settings?tab=automation&saved=1");
+}

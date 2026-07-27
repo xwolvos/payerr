@@ -34,5 +34,6 @@ export interface Invoice {
   status: "unpaid" | "paid";
   paid_at: string | null;
   method: string | null;
+  last_reminded_at: string | null;
   created_at: string;
 }

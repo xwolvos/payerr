@@ -86,9 +86,17 @@ export function migrate() {
       status TEXT NOT NULL DEFAULT 'unpaid',
       paid_at TEXT,
       method TEXT,
+      last_reminded_at TEXT,
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
   `);
+
+  const invoiceColumns = db.prepare("PRAGMA table_info(invoices)").all() as Array<{
+    name: string;
+  }>;
+  if (!invoiceColumns.some((c) => c.name === "last_reminded_at")) {
+    db.exec("ALTER TABLE invoices ADD COLUMN last_reminded_at TEXT;");
+  }
 
   const userColumns = db.prepare("PRAGMA table_info(users)").all() as Array<{ name: string }>;
   const hasOldColumn = userColumns.some((c) => c.name === "plex_username");
