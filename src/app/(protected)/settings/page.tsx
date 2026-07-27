@@ -88,20 +88,26 @@ export default async function SettingsPage({
                 </label>
                 <input
                   name="server_name"
-                  placeholder="Dan's Plex Server"
+                  placeholder="My Media Server"
                   defaultValue={s.server_name ?? ""}
                   className={inputClass}
                 />
               </div>
               <div>
-                <label className={labelClass}>Currency symbol</label>
-                <input
+                <label className={labelClass}>Currency</label>
+                <select
                   name="currency_symbol"
-                  placeholder="$"
-                  maxLength={3}
                   defaultValue={s.currency_symbol ?? "$"}
                   className={inputClass}
-                />
+                >
+                  <option value="$">$ — USD/CAD/AUD</option>
+                  <option value="€">€ — Euro</option>
+                  <option value="£">£ — British Pound</option>
+                  <option value="¥">¥ — Yen/Yuan</option>
+                  <option value="₹">₹ — Rupee</option>
+                  <option value="kr">kr — Krona/Krone</option>
+                  <option value="R$">R$ — Real</option>
+                </select>
               </div>
             </div>
 
