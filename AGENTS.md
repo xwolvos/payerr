@@ -33,13 +33,26 @@ This version has breaking changes — APIs, conventions, and file structure may 
   "phase-production-build"` and uses an in-memory DB during build instead.
   Keep that guard if you touch `db.ts`.
 - **No WAL journal mode.** `db.ts` explicitly sets `journal_mode = DELETE`,
-  not the more common `WAL`. WAL depends on a shared-memory mmap (the
-  `-shm` file) that FUSE-based filesystems don't reliably support —
-  concretely, Unraid's `/mnt/user` union mount silently lost writes across
-  container restarts in testing (admin account created, container
-  restarted once, account was gone). This is a single-process app with low
-  write volume, so DELETE's weaker concurrent-writer story doesn't matter.
-  Don't switch back to WAL for a performance micro-optimization.
+  not the more common `WAL`. This was a defensive change made while
+  chasing what turned out to be an unrelated bug (see below) — it wasn't
+  proven necessary, but WAL's shared-memory mmap (the `-shm` file) is a
+  real known weak point on FUSE-based filesystems (e.g. Unraid's
+  `/mnt/user`), so it stays as a precaution. This is a single-process app
+  with low write volume; DELETE's weaker concurrent-writer story doesn't
+  matter here.
+- **`isAdminConfigured()`/`getSession()` checks need `force-dynamic`.**
+  `/`, `/login`, and `/setup` each check `isAdminConfigured()` before any
+  call to a real dynamic API (`cookies()`, etc). With nothing marking the
+  route dynamic, Next statically prerenders it at build time — against
+  the empty **build-phase** database (see above), where
+  `isAdminConfigured()` is always `false`. That bakes in a permanent,
+  stale redirect that ignores the real runtime database forever. Symptom
+  in production: visiting the app redirects in an infinite loop between
+  `/login` and `/setup` even though an admin account genuinely exists.
+  Fix was `export const dynamic = "force-dynamic"` on all three pages.
+  If you add another page that branches on auth state before touching a
+  real dynamic API, it needs this too — check the `next build` route
+  table (`ƒ` vs `○`) before shipping.
 - **`npm ci` vs `npm install` on Linux.** Both the Dockerfile and
   `ci.yml` use `npm install`, not `npm ci`. A `package-lock.json`
   generated on Windows/macOS doesn't carry the Linux optional platform

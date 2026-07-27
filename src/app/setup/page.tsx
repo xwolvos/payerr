@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { isAdminConfigured } from "@/lib/auth";
 import { setupAdmin } from "./actions";
 
+export const dynamic = "force-dynamic";
+
 export default async function SetupPage({
   searchParams,
 }: {
