@@ -32,11 +32,12 @@ This version has breaking changes — APIs, conventions, and file structure may 
   "database is locked." `src/lib/db.ts` detects `NEXT_PHASE ===
   "phase-production-build"` and uses an in-memory DB during build instead.
   Keep that guard if you touch `db.ts`.
-- **Docker + `npm ci`.** The Dockerfile uses `npm install`, not `npm ci`, in
-  the deps stage. A lockfile generated on Windows/macOS is missing the
-  Linux-musl optional platform packages (Alpine's libc), so `npm ci` fails
-  inside the Alpine build stage with an "out of sync" error even though the
-  lockfile is fine on the host OS.
+- **`npm ci` vs `npm install` on Linux.** Both the Dockerfile and
+  `ci.yml` use `npm install`, not `npm ci`. A `package-lock.json`
+  generated on Windows/macOS doesn't carry the Linux optional platform
+  packages `npm ci`'s strict lockfile check expects, so it fails with an
+  "out of sync" error on any Linux runner/base image (Alpine *or*
+  glibc-based Ubuntu) even though the lockfile is fine on the host OS.
 - **Payment handles belong to the admin, not the user.** Venmo/PayPal.me/
   Cash App links always send money *to* whoever's handle is in the URL.
   Settings → Payments holds *your* handles, because you're the one getting
