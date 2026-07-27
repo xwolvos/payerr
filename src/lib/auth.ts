@@ -40,7 +40,15 @@ export async function createSession(): Promise<string> {
   store.set(SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    // Deliberately not tied to NODE_ENV: this app is typically self-hosted
+    // behind plain HTTP on a LAN (no reverse-proxy TLS), and browsers
+    // silently refuse to store `Secure` cookies on non-HTTPS origins. A
+    // cookie set with `Secure: true` here would appear to work for the
+    // single response that inlines the redirected page, then vanish on
+    // the very next request. httpOnly + sameSite=lax still protects it;
+    // Secure would only add value behind actual HTTPS, which the deployer
+    // is free to add via a reverse proxy without any code change needed.
+    secure: false,
     path: "/",
     maxAge: SESSION_DAYS * 24 * 60 * 60,
   });

@@ -53,6 +53,19 @@ This version has breaking changes — APIs, conventions, and file structure may 
   If you add another page that branches on auth state before touching a
   real dynamic API, it needs this too — check the `next build` route
   table (`ƒ` vs `○`) before shipping.
+- **Session cookie must not be `Secure` by default.** `createSession()`
+  in `src/lib/auth.ts` sets `secure: false`, always — don't tie it to
+  `NODE_ENV === "production"`. The Dockerfile sets `NODE_ENV=production`,
+  and this app is normally accessed over plain HTTP on a LAN with no
+  reverse-proxy TLS (same as Wizarr, Overseerr, etc.). A `Secure` cookie
+  is silently refused by the browser on a non-HTTPS origin. The symptom
+  was confusing: login (and every subsequent server action) *appeared* to
+  succeed because Next inlines the redirected page's render into that
+  same response, then the very next request had no cookie to send and
+  bounced to `/login` — looking exactly like "every save logs me out."
+  `httpOnly` + `sameSite: "lax"` still protect the cookie; `Secure` would
+  only add value behind real HTTPS, which a deployer can add via reverse
+  proxy without needing this app to know about it.
 - **`npm ci` vs `npm install` on Linux.** Both the Dockerfile and
   `ci.yml` use `npm install`, not `npm ci`. A `package-lock.json`
   generated on Windows/macOS doesn't carry the Linux optional platform
