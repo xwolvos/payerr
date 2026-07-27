@@ -7,27 +7,31 @@ export interface ImportedUser {
 }
 
 /**
- * Uses the plex.tv "friends" endpoint (your account's shared users), which is
- * a reasonable proxy for "who has access to my server" for solo/personal
- * Plex owners. It does not verify per-server library access the way
- * Overseerr's own Plex auth check does.
+ * Queries the Plex server itself (not plex.tv) for the accounts that
+ * currently have access to it — the same authoritative list Wizarr and
+ * Overseerr's Plex auth check rely on, rather than the plex.tv account-wide
+ * friends list.
  */
-export async function fetchPlexFriends(token: string): Promise<ImportedUser[]> {
-  const res = await fetch("https://plex.tv/api/v2/friends", {
+export async function fetchPlexServerUsers(
+  baseUrl: string,
+  token: string
+): Promise<ImportedUser[]> {
+  const url = `${baseUrl.replace(/\/$/, "")}/accounts`;
+  const res = await fetch(url, {
     headers: { "X-Plex-Token": token, Accept: "application/json" },
   });
   if (!res.ok) throw new Error(`Plex API error: ${res.status} ${res.statusText}`);
-  const data = (await res.json()) as Array<{
-    username?: string;
-    title?: string;
-    friendlyName?: string;
-    email?: string;
-  }>;
-  return data.map((f) => ({
-    name: f.friendlyName || f.username || f.title || f.email || "Unknown",
-    email: f.email ?? null,
-    externalUsername: f.username ?? f.title ?? null,
-  }));
+  const data = (await res.json()) as {
+    MediaContainer?: { Account?: Array<{ id?: number; name?: string }> };
+  };
+  const accounts = data.MediaContainer?.Account ?? [];
+  return accounts
+    .filter((a) => a.name)
+    .map((a) => ({
+      name: a.name!,
+      email: null,
+      externalUsername: a.name!,
+    }));
 }
 
 /**

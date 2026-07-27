@@ -10,8 +10,8 @@ payment request links so you're not chasing people down manually.
   VPN, domain, etc.) as monthly or yearly line items.
 - **Flexible splitting** — split costs equally, by weight, or as a fixed flat
   amount per user, then generate a billing period with one click.
-- **Plex / Overseerr / Jellyseerr sync** — pull your user roster in directly
-  instead of typing it in by hand.
+- **Plex / Jellyfin / Overseerr / Jellyseerr sync** — pull your user roster
+  in directly instead of typing it in by hand.
 - **Payment links** — Venmo, PayPal.me, and Cash App request links generated
   per invoice, pointing at *your* account.
 - **Reminders** — send outstanding balances via Discord webhook or email
@@ -75,12 +75,15 @@ Everything is configured through the UI after first login:
 All data is stored in a single SQLite file under `/app/data` (or `./data`
 locally) — back that up if you want to keep your history.
 
-## Notes on the Plex/Overseerr sync
+## Notes on the sync integrations
 
-- The Plex sync uses `plex.tv`'s "friends" endpoint, a reasonable proxy for
-  "people who have access to my server" for personal/solo Plex owners. It
-  does not verify per-library access the way Overseerr's own Plex sign-in
-  check does.
+- The Plex sync queries your Plex server's own `/accounts` endpoint (same
+  approach Wizarr uses), which returns the accounts that actually have
+  access to that specific server — not just your plex.tv account's overall
+  friends list.
+- The Jellyfin sync lists every account on the server via the admin
+  `/Users` endpoint — Jellyfin doesn't have Plex-style per-library sharing,
+  so the full user list is the closest equivalent to "who has access."
 - The Overseerr/Jellyseerr sync pulls the existing user list via the
   `/api/v1/user` endpoint and an API key from Settings → Integrations.
 

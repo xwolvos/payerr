@@ -9,6 +9,7 @@ function str(formData: FormData, key: string): string {
 }
 
 export async function saveIntegrations(formData: FormData) {
+  setSetting("plex_url", str(formData, "plex_url"));
   setSetting("plex_token", str(formData, "plex_token"));
   setSetting("jellyfin_url", str(formData, "jellyfin_url"));
   setSetting("jellyfin_api_key", str(formData, "jellyfin_api_key"));

@@ -12,6 +12,7 @@ export default async function SettingsPage({
 }) {
   const { saved } = await searchParams;
   const s = getSettings([
+    "plex_url",
     "plex_token",
     "jellyfin_url",
     "jellyfin_api_key",
@@ -80,13 +81,26 @@ export default async function SettingsPage({
         <form action={saveIntegrations} className="space-y-5">
           <div>
             <h3 className="mb-2 text-sm font-semibold text-zinc-700 dark:text-zinc-300">Plex</h3>
-            <label className={labelClass}>Plex token (X-Plex-Token)</label>
-            <input
-              name="plex_token"
-              type="password"
-              defaultValue={s.plex_token ?? ""}
-              className={inputClass}
-            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className={labelClass}>Server URL</label>
+                <input
+                  name="plex_url"
+                  placeholder="http://192.168.1.10:32400"
+                  defaultValue={s.plex_url ?? ""}
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Token (X-Plex-Token)</label>
+                <input
+                  name="plex_token"
+                  type="password"
+                  defaultValue={s.plex_token ?? ""}
+                  className={inputClass}
+                />
+              </div>
+            </div>
           </div>
 
           <div>

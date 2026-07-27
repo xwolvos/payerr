@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db, getSetting, queryAll } from "@/lib/db";
 import {
-  fetchPlexFriends,
+  fetchPlexServerUsers,
   fetchOverseerrUsers,
   fetchJellyfinUsers,
   ImportedUser,
@@ -87,15 +87,18 @@ function upsertImported(imported: ImportedUser[], source: string) {
 }
 
 export async function syncPlexUsers() {
+  const url = getSetting("plex_url");
   const token = getSetting("plex_token");
-  if (!token) {
-    redirect("/users?error=" + encodeURIComponent("Configure your Plex token in Settings first"));
+  if (!url || !token) {
+    redirect(
+      "/users?error=" + encodeURIComponent("Configure your Plex URL and token in Settings first")
+    );
   }
 
   let redirectTarget: string;
   try {
-    const friends = await fetchPlexFriends(token);
-    const added = upsertImported(friends, "plex");
+    const users = await fetchPlexServerUsers(url!, token!);
+    const added = upsertImported(users, "plex");
     revalidatePath("/users");
     redirectTarget = "/users?synced=" + encodeURIComponent(`Imported ${added} new user(s) from Plex`);
   } catch (err) {
