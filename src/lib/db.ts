@@ -2,12 +2,18 @@ import { DatabaseSync, type SQLInputValue } from "node:sqlite";
 import fs from "node:fs";
 import path from "node:path";
 
+// `next build` spins up several worker processes that each import this module
+// to statically analyze routes, which would otherwise open concurrent
+// connections to the same on-disk file and race on the WAL lock. There's
+// nothing real to persist at build time, so use an in-memory DB instead.
+const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build";
+
 const DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), "data");
-if (!fs.existsSync(DATA_DIR)) {
+if (!isBuildPhase && !fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
-const DB_PATH = path.join(DATA_DIR, "payerr.sqlite");
+const DB_PATH = isBuildPhase ? ":memory:" : path.join(DATA_DIR, "payerr.sqlite");
 
 declare global {
   // eslint-disable-next-line no-var
